@@ -19,6 +19,13 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -31,4 +38,10 @@ dependencies {
 
     }
     compile 'commons-beanutils:commons-beanutils:20030211.134440'
+
+    // This library handles authentication and authorization
+    compile 'com.spotify.android:auth:1.0.0-alpha'
+
+    // This library handles music playback
+    compile 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
 }
