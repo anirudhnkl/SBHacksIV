@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/inverse"
+    tools:context="com.sbhacks.ektashahani.roadtrip.PickerActivity">
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="416dp"
+        android:layout_height="618dp"
+        android:background="@color/colorPrimaryDark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="424dp"
+        android:layout_height="41dp"
+        android:background="@color/SaffronMango"
+        android:elevation="22dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="136dp"
+        android:layout_height="25dp"
+        android:elevation="22dp"
+        app:srcCompat="@mipmap/text"
+        tools:layout_editor_absoluteX="137dp"
+        tools:layout_editor_absoluteY="7dp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="286dp"
+        android:layout_height="166dp"
+        android:fontFamily="sans-serif-light"
+        android:lines="2"
+        android:text="How are you feeling?"
+        android:textColor="@android:color/white"
+        android:textSize="30sp"
+        tools:layout_editor_absoluteX="62dp"
+        tools:layout_editor_absoluteY="115dp" />
+
+    <AutoCompleteTextView
+        android:id="@+id/moodEnterView"
+        android:layout_width="246dp"
+        android:layout_height="46dp"
+        android:background="@color/colorPrimaryDark"
+        android:hint="Mood?"
+        tools:layout_editor_absoluteX="82dp"
+        tools:layout_editor_absoluteY="189dp" />
+
+</android.support.constraint.ConstraintLayout>

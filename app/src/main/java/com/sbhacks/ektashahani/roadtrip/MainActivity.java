@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -79,6 +81,9 @@ public class MainActivity extends Activity implements
 
     SpotifyApi api = new SpotifyApi();
 
+    private static final String[] MOODS = new String[] {
+            "Happy", "Sad", "Tired", "Energetic", "Chill"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +94,12 @@ public class MainActivity extends Activity implements
         AuthenticationRequest request = builder.build();
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, MOODS);
+        AutoCompleteTextView textView = (AutoCompleteTextView)
+                findViewById(R.id.moodEnterView);
+        textView.setAdapter(adapter);
     }
 
     @Override
