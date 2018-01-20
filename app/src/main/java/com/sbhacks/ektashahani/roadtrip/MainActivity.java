@@ -32,9 +32,16 @@ import com.wrapper.spotify.models.Track;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyCallback;
+import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;
+import kaaes.spotify.webapi.android.models.AudioFeaturesTrack;
+import kaaes.spotify.webapi.android.models.Pager;
+import kaaes.spotify.webapi.android.models.SavedTrack;
 import retrofit.Callback;
+import retrofit.RequestInterceptor;
+import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
@@ -79,13 +86,14 @@ public class MainActivity extends Activity implements
 
     SpotifyApi api = new SpotifyApi();
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
-        builder.setScopes(new String[]{"user-read-private", "streaming"});
+        builder.setScopes(new String[]{"user-read-private", "streaming", "user-library-read"});
         AuthenticationRequest request = builder.build();
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
@@ -98,10 +106,11 @@ public class MainActivity extends Activity implements
         // Check if result comes from the correct activity
         // The next 19 lines of the code are what you need to copy & paste! :)
         if (requestCode == REQUEST_CODE) {
-            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
+            final AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
-                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 api.setAccessToken(response.getAccessToken());
+
+                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
                 Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
                     @Override
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
@@ -154,10 +163,36 @@ public class MainActivity extends Activity implements
 
         SpotifyService spotify = api.getService();
 
+        spotify.getMySavedTracks(new SpotifyCallback<Pager<SavedTrack>>() {
+            @Override
+            public void success(Pager<SavedTrack> savedTrackPager, Response response) {
+                List<SavedTrack> items = savedTrackPager.items;
+                System.out.println(items.get(0).track.uri);
+            }
+
+            @Override
+            public void failure(SpotifyError error) {
+                System.out.println(error.getMessage());
+            }
+        });
+
+        spotify.getTrackAudioFeatures("0bZ52QzCCKfrfOqs7za6lI", new Callback<AudioFeaturesTrack>() {
+            @Override
+            public void success(AudioFeaturesTrack audioFeaturesTrack, Response response) {
+                System.out.println(audioFeaturesTrack.acousticness);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                System.out.println("fail");
+            }
+        });
+
+
         spotify.getAlbum("2dIGnmEIy1WZIcZCFSj6i8", new Callback<Album>() {
             @Override
             public void success(Album album, Response response) {
-                Log.d("Album success", album.name);
+                System.out.println("Album success");
             }
 
             @Override
