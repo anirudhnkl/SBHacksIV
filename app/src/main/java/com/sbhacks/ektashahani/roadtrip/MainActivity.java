@@ -3,6 +3,7 @@ package com.sbhacks.ektashahani.roadtrip;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.spotify.sdk.android.player.Metadata;
 import com.wrapper.spotify.Api;
 
 import android.app.Activity;
@@ -20,6 +21,22 @@ import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
+import com.wrapper.spotify.methods.ArtistSearchRequest;
+import com.wrapper.spotify.methods.GetMySavedTracksRequest;
+import com.wrapper.spotify.methods.TrackSearchRequest;
+import com.wrapper.spotify.models.Artist;
+import com.wrapper.spotify.models.LibraryTrack;
+import com.wrapper.spotify.models.Page;
+import com.wrapper.spotify.models.Track;
+
+import java.util.List;
+
+import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Album;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 import static com.spotify.sdk.android.authentication.LoginActivity.REQUEST_CODE;
 
@@ -51,11 +68,16 @@ public class MainActivity extends Activity implements
     private static final String CLIENT_ID = "fd8cdcd290f64bb28d37a246758a4f5f";
 
     // TODO: Replace with your redirect URI
-    private static final String REDIRECT_URI = "moodQ://callback";
+    private static final String REDIRECT_URI = "http://google.com";
+
+    private static final String CLIENT_SECRET = "2ccdca9a119f4525bbd49ed4fd88594a";
 
     private Player mPlayer;
 
     private static final int REQUEST_CODE = 1337;
+
+
+    SpotifyApi api = new SpotifyApi();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +101,7 @@ public class MainActivity extends Activity implements
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             if (response.getType() == AuthenticationResponse.Type.TOKEN) {
                 Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
+                api.setAccessToken(response.getAccessToken());
                 Spotify.getPlayer(playerConfig, this, new SpotifyPlayer.InitializationObserver() {
                     @Override
                     public void onInitialized(SpotifyPlayer spotifyPlayer) {
@@ -127,7 +150,21 @@ public class MainActivity extends Activity implements
         Log.d("MainActivity", "User logged in");
 
         // This is the line that plays a song.
-        mPlayer.playUri(null, "spotify:track:2TpxZ7JUBn3uw46aR7qd6V", 0, 0);
+//        mPlayer.playUri(null, "spotify:track:4bJzIbze97tZwCxxMw4hx9", 0, 0);
+
+        SpotifyService spotify = api.getService();
+
+        spotify.getAlbum("2dIGnmEIy1WZIcZCFSj6i8", new Callback<Album>() {
+            @Override
+            public void success(Album album, Response response) {
+                Log.d("Album success", album.name);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.d("Album failure", error.toString());
+            }
+        });
     }
 
     @Override
