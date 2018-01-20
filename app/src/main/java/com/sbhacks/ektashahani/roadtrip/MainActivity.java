@@ -168,6 +168,8 @@ public class MainActivity extends Activity implements
 
         final SpotifyService spotify = api.getService();
 
+        //03LHtXxWrdOdS7UQQy2E6Y
+
         spotify.getPlaylistTracks("1252333561", "03LHtXxWrdOdS7UQQy2E6Y", new Callback<Pager<PlaylistTrack>>() {
             @Override
             public void success(Pager<PlaylistTrack> playlistTrackPager, Response response) {
@@ -190,12 +192,12 @@ public class MainActivity extends Activity implements
                         System.out.println("test2: " + audioFeaturesTracks.audio_features.get(1).acousticness);
                         System.out.println("size: " + audioFeaturesTracks.audio_features.size());
 
-                        //mPlayer.playUri(null, saved.get(0).track.uri, 0, 0);
                         sortPlaylist(allTrackFeatures);
                         System.out.println("tired: " + tired.size());
                         System.out.println("sad: "  + sad.size());
                         System.out.println("chill: " + chill.size());
                         System.out.println("energetic: " + energetic.size());
+                        mPlayer.playUri(null, chill.get(0).uri, 0, 0);
                     }
 
                     @Override
@@ -260,6 +262,11 @@ public class MainActivity extends Activity implements
         Log.d("MainActivity", "Received connection message: " + message);
     }
 
+//    @Override
+//    public void onPause() {
+//        mPlayer.destroy();
+//    }
+
     public void sortPlaylist(AudioFeaturesTracks featureObj) {
         List<AudioFeaturesTrack> features = featureObj.audio_features;
 
@@ -267,8 +274,8 @@ public class MainActivity extends Activity implements
             AudioFeaturesTrack curr = features.get(i);
             if(curr.danceability > .70) { tired.add(curr); }
             if(curr.energy > .70) { energetic.add(curr); }
-            if(curr.acousticness > .40) { sad.add(curr); }
-            if(curr.danceability > .57 && curr.loudness < -6) { chill.add(curr); }
+            if(curr.acousticness > .50 && curr.valence < .29) { sad.add(curr); }
+            if(curr.loudness < -6 && (curr.tempo < 125 && curr.tempo > 90)) { chill.add(curr); }
         }
     }
 }
