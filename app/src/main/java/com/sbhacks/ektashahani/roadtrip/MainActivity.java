@@ -17,7 +17,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+<<<<<<< HEAD
 import android.widget.TextView;
+=======
+>>>>>>> origin/master
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -52,38 +55,16 @@ import com.sbhacks.ektashahani.roadtrip.googlecloud.MicrophoneStreamRecognizeCli
 
 import static android.content.ContentValues.TAG;
 
-
-/*public class MainActivity extends AppCompatActivity {
-
-    final String clientId = "fd8cdcd290f64bb28d37a246758a4f5f";
-    final String clientSecret = "";
-    final String redirectURI = "moodQ://callback";
-
-    final Api api = Api.builder()
-            .clientId(clientId)
-            .clientSecret(clientSecret)
-            .redirectURI(redirectURI)
-            .build();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-    }
-}*/
-
-
 public class MainActivity extends Activity implements
         SpotifyPlayer.NotificationCallback, ConnectionStateCallback, IResults {
 
     private static final String CLIENT_ID = "fd8cdcd290f64bb28d37a246758a4f5f";
     private static final String REDIRECT_URI = "http://google.com";
-    private static final String CLIENT_SECRET = "2ccdca9a119f4525bbd49ed4fd88594a";
 
     private Player mPlayer;
     private static final int REQUEST_CODE = 1337;
 
+    private Button mSkipBtn;
 
     SpotifyApi api = new SpotifyApi();
     List<PlaylistTrack> saved;
@@ -153,6 +134,14 @@ public class MainActivity extends Activity implements
                     t1.setPitch(1.3f);
                     t1.setSpeechRate(1.1f);
                 }
+            }
+        });
+
+         mSkipBtn = (Button)findViewById(R.id.btn_skip);
+         mSkipBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPlayer.skipToNext(null);
             }
         });
 
@@ -372,10 +361,6 @@ public class MainActivity extends Activity implements
                     public void success(AudioFeaturesTracks audioFeaturesTracks, Response response) {
                         System.out.println("playlists fetched");
                         allTrackFeatures = audioFeaturesTracks;
-                        System.out.println("test: " + audioFeaturesTracks.audio_features.get(0).acousticness);
-                        System.out.println("test2: " + audioFeaturesTracks.audio_features.get(1).acousticness);
-                        System.out.println("size: " + audioFeaturesTracks.audio_features.size());
-
                         sortPlaylist(allTrackFeatures);
                     }
 
@@ -429,22 +414,10 @@ public class MainActivity extends Activity implements
         for (int i = 0; i < features.size(); i++)
         {
             AudioFeaturesTrack curr = features.get(i);
-            if (curr.danceability > .70)
-            {
-                tired.add(curr);
-            }
-            if (curr.energy > .70)
-            {
-                energetic.add(curr);
-            }
-            if (curr.acousticness > .50 && curr.valence < .29)
-            {
-                sad.add(curr);
-            }
-            if (curr.loudness < -6 && (curr.tempo < 125 && curr.tempo > 90))
-            {
-                chill.add(curr);
-            }
+            if(curr.danceability > .70) { tired.add(curr); }
+            if(curr.energy > .70) { energetic.add(curr); }
+            if(curr.acousticness > .50 && curr.valence < .29) { sad.add(curr); }
+            if(curr.loudness < -6 && (curr.energy > .35 && curr.energy < .60)) { chill.add(curr); }
         }
     }
 
