@@ -2,11 +2,13 @@ package com.sbhacks.ektashahani.roadtrip;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
 import android.support.v4.app.ActivityCompat;
@@ -19,6 +21,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 
 import android.widget.TextView;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -48,6 +52,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
+<<<<<<< HEAD
 import com.sbhacks.ektashahani.roadtrip.googlecloud.IResults;
 import com.sbhacks.ektashahani.roadtrip.googlecloud.MicrophoneStreamRecognizeClient;
 
@@ -63,6 +68,9 @@ public class MainActivity extends Activity implements
     private static final int REQUEST_CODE = 1337;
 
     private Button mSkipBtn;
+
+    private ImageButton mSpeakBtn;
+    private final int REQ_CODE_SPEECH_INPUT = 100;
 
     SpotifyApi api = new SpotifyApi();
     List<PlaylistTrack> saved;
@@ -83,7 +91,7 @@ public class MainActivity extends Activity implements
     private int currentPos;
     private int playlistIndex = 0;
     //int currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-    int currentTime = Calendar.getInstance().get(Calendar.MINUTE);
+    int currentTime;
 
     TextToSpeech t1;
 
@@ -111,6 +119,8 @@ public class MainActivity extends Activity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_picker);
 
+        currentTime = Calendar.getInstance().get(Calendar.MINUTE);
+
         //Authentication
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
         builder.setScopes(new String[]{"user-read-private", "streaming", "user-library-read"});
@@ -137,11 +147,23 @@ public class MainActivity extends Activity implements
 
          mSkipBtn = (Button)findViewById(R.id.btn_skip);
          mSkipBtn.setOnClickListener(new View.OnClickListener() {
+        mSkipBtn = (Button)findViewById(R.id.btn_skip);
+        mSkipBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mPlayer.skipToNext(null);
             }
         });
+
+        mSpeakBtn = (ImageButton)findViewById(R.id.btn_mic);
+        mSpeakBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                promptSpeechInput();
+            }
+        });
+
+
 
         //Grab mood from UI
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
@@ -239,6 +261,14 @@ public class MainActivity extends Activity implements
                 });
             }
         }
+        else if(requestCode == REQ_CODE_SPEECH_INPUT) {
+            if (resultCode == RESULT_OK && null != intent) {
+
+                ArrayList<String> result = intent
+                        .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                System.out.println(result.get(0));
+            }
+        }
     }
 
     @Override
@@ -282,6 +312,8 @@ public class MainActivity extends Activity implements
                 String toSpeak = "How are you feeling?";
                 t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null, null);
                 startTranscription(); //rucha
+               // promptSpeechInput();
+                //INSERT CODE TO GET USER VOICE INPUT - RUCHA
                 //SWITCH PLAYLIST BASED ON RESPONSE AND RESUME PLAYER
             }
             default:
@@ -416,7 +448,21 @@ public class MainActivity extends Activity implements
             if(curr.danceability > .70) { tired.add(curr); }
             if(curr.energy > .70) { energetic.add(curr); }
             if(curr.acousticness > .50 && curr.valence < .29) { sad.add(curr); }
-            if(curr.loudness < -6 && (curr.energy > .35 && curr.energy < .60)) { chill.add(curr); }
+
+        }
+    }
+
+    private void promptSpeechInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                "say something");
+        try {
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } catch (ActivityNotFoundException a) {
+            System.out.println(a.getMessage());
         }
     }
 

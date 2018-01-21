@@ -38,6 +38,7 @@
         android:id="@+id/textView"
         android:layout_width="286dp"
         android:layout_height="180dp"
+        android:layout_height="300dp"
         android:fontFamily="sans-serif-light"
         android:lines="2"
         android:text="How are you feeling?"
@@ -77,9 +78,25 @@
         app:layout_constraintTop_toTopOf="@+id/textView"
         android:layout_marginTop="40dp"
         app:layout_constraintBottom_toBottomOf="@+id/textView"
+<<<<<<< HEAD
         app:layout_constraintVertical_bias="1.0"
         app:layout_constraintRight_toRightOf="@+id/textView"
         app:layout_constraintLeft_toLeftOf="@+id/textView"
         app:layout_constraintHorizontal_bias=".5" />
+        app:layout_constraintRight_toRightOf="@+id/textView"
+        app:layout_constraintLeft_toLeftOf="@+id/textView" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@android:drawable/ic_btn_speak_now"
+        android:visibility="visible"
+        android:id="@+id/btn_mic"
+        app:layout_constraintTop_toTopOf="@+id/textView"
+        android:layout_marginTop="40dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="0.8"
+        app:layout_constraintRight_toRightOf="@+id/textView"
+        app:layout_constraintLeft_toLeftOf="@+id/textView" />
 
 </android.support.constraint.ConstraintLayout>
