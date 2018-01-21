@@ -1,9 +1,11 @@
 package com.sbhacks.ektashahani.roadtrip;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
 import android.util.Log;
@@ -12,6 +14,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -40,28 +45,6 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-
-/*public class MainActivity extends AppCompatActivity {
-
-    final String clientId = "fd8cdcd290f64bb28d37a246758a4f5f";
-    final String clientSecret = "";
-    final String redirectURI = "moodQ://callback";
-
-    final Api api = Api.builder()
-            .clientId(clientId)
-            .clientSecret(clientSecret)
-            .redirectURI(redirectURI)
-            .build();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-    }
-}*/
-
-
 public class MainActivity extends Activity implements
         SpotifyPlayer.NotificationCallback, ConnectionStateCallback {
 
@@ -72,6 +55,9 @@ public class MainActivity extends Activity implements
     private Player mPlayer;
     private static final int REQUEST_CODE = 1337;
 
+    private Button mSkipBtn;
+    private ImageButton mSpeakBtn;
+    private final int REQ_CODE_SPEECH_INPUT = 100;
 
     SpotifyApi api = new SpotifyApi();
     List<PlaylistTrack> saved;
@@ -91,7 +77,7 @@ public class MainActivity extends Activity implements
     private int currentPos;
     private int playlistIndex = 0;
     //int currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-    int currentTime = Calendar.getInstance().get(Calendar.MINUTE);
+    int currentTime;
 
     TextToSpeech t1;
 
@@ -99,6 +85,8 @@ public class MainActivity extends Activity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_picker);
+
+        currentTime = Calendar.getInstance().get(Calendar.MINUTE);
 
         //Authentication
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
@@ -123,6 +111,24 @@ public class MainActivity extends Activity implements
                 }
             }
         });
+
+        mSkipBtn = (Button)findViewById(R.id.btn_skip);
+        mSkipBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPlayer.skipToNext(null);
+            }
+        });
+
+        mSpeakBtn = (ImageButton)findViewById(R.id.btn_mic);
+        mSpeakBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                promptSpeechInput();
+            }
+        });
+
+
 
         //Grab mood from UI
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
@@ -176,6 +182,14 @@ public class MainActivity extends Activity implements
                 });
             }
         }
+        else if(requestCode == REQ_CODE_SPEECH_INPUT) {
+            if (resultCode == RESULT_OK && null != intent) {
+
+                ArrayList<String> result = intent
+                        .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                System.out.println(result.get(0));
+            }
+        }
     }
 
     @Override
@@ -218,6 +232,7 @@ public class MainActivity extends Activity implements
             case kSpPlaybackNotifyPause : {
                 String toSpeak = "How are you feeling?";
                 t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null, null);
+               // promptSpeechInput();
                 //INSERT CODE TO GET USER VOICE INPUT - RUCHA
                 //SWITCH PLAYLIST BASED ON RESPONSE AND RESUME PLAYER
             }
@@ -265,10 +280,6 @@ public class MainActivity extends Activity implements
                     @Override
                     public void success(AudioFeaturesTracks audioFeaturesTracks, Response response) {
                         allTrackFeatures = audioFeaturesTracks;
-                        System.out.println("test: " + audioFeaturesTracks.audio_features.get(0).acousticness);
-                        System.out.println("test2: " + audioFeaturesTracks.audio_features.get(1).acousticness);
-                        System.out.println("size: " + audioFeaturesTracks.audio_features.size());
-
                         sortPlaylist(allTrackFeatures);
                     }
 
@@ -323,7 +334,21 @@ public class MainActivity extends Activity implements
             if(curr.danceability > .70) { tired.add(curr); }
             if(curr.energy > .70) { energetic.add(curr); }
             if(curr.acousticness > .50 && curr.valence < .29) { sad.add(curr); }
-            if(curr.loudness < -6 && (curr.tempo < 125 && curr.tempo > 90)) { chill.add(curr); }
+            if(curr.loudness < -6 && (curr.energy > .35 && curr.energy < .60)) { chill.add(curr); }
+        }
+    }
+
+    private void promptSpeechInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                "say something");
+        try {
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } catch (ActivityNotFoundException a) {
+            System.out.println(a.getMessage());
         }
     }
 }
