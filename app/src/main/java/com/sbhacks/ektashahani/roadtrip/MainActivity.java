@@ -1,11 +1,5 @@
 package com.sbhacks.ektashahani.roadtrip;
 
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-
-import com.spotify.sdk.android.player.Metadata;
-import com.wrapper.spotify.Api;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,34 +17,19 @@ import com.spotify.sdk.android.player.Player;
 import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
-import com.wrapper.spotify.methods.ArtistSearchRequest;
-import com.wrapper.spotify.methods.GetMySavedTracksRequest;
-import com.wrapper.spotify.methods.TrackSearchRequest;
-import com.wrapper.spotify.models.Artist;
-import com.wrapper.spotify.models.LibraryTrack;
-import com.wrapper.spotify.models.Page;
-import com.wrapper.spotify.models.Track;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.SpotifyCallback;
-import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Album;
 import kaaes.spotify.webapi.android.models.AudioFeaturesTrack;
 import kaaes.spotify.webapi.android.models.AudioFeaturesTracks;
 import kaaes.spotify.webapi.android.models.Pager;
 import kaaes.spotify.webapi.android.models.PlaylistTrack;
-import kaaes.spotify.webapi.android.models.SavedTrack;
 import retrofit.Callback;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-
-import static com.spotify.sdk.android.authentication.LoginActivity.REQUEST_CODE;
 
 
 /*public class MainActivity extends AppCompatActivity {
@@ -100,7 +79,7 @@ public class MainActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_picker);
 
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
         builder.setScopes(new String[]{"user-read-private", "streaming", "user-library-read"});
