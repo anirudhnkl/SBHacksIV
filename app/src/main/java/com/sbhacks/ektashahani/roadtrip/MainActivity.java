@@ -1,17 +1,23 @@
 package com.sbhacks.ektashahani.roadtrip;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -24,6 +30,7 @@ import com.spotify.sdk.android.player.PlayerEvent;
 import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,6 +46,11 @@ import kaaes.spotify.webapi.android.models.PlaylistTrack;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+
+import com.sbhacks.ektashahani.roadtrip.googlecloud.IResults;
+import com.sbhacks.ektashahani.roadtrip.googlecloud.MicrophoneStreamRecognizeClient;
+
+import static android.content.ContentValues.TAG;
 
 
 /*public class MainActivity extends AppCompatActivity {
@@ -63,7 +75,7 @@ import retrofit.client.Response;
 
 
 public class MainActivity extends Activity implements
-        SpotifyPlayer.NotificationCallback, ConnectionStateCallback {
+        SpotifyPlayer.NotificationCallback, ConnectionStateCallback, IResults {
 
     private static final String CLIENT_ID = "fd8cdcd290f64bb28d37a246758a4f5f";
     private static final String REDIRECT_URI = "http://google.com";
@@ -87,6 +99,7 @@ public class MainActivity extends Activity implements
             "Happy", "Sad", "Tired", "Energetic", "Chill"};
 
     private String currentMood = "";
+    private String unfilteredMood = "";
     List<AudioFeaturesTrack> currentPlaylist;
     private int currentPos;
     private int playlistIndex = 0;
@@ -94,6 +107,25 @@ public class MainActivity extends Activity implements
     int currentTime = Calendar.getInstance().get(Calendar.MINUTE);
 
     TextToSpeech t1;
+
+    private IResults Self = this;
+
+    private Thread runner = new Thread() {
+
+        public void run(){
+
+            try {
+                Log.d("Main Activity", "Start");
+                MicrophoneStreamRecognizeClient client;
+                client = new MicrophoneStreamRecognizeClient(getResources().openRawResource(R.raw.credential), Self);
+                client.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +179,50 @@ public class MainActivity extends Activity implements
                 mPlayer.playUri(null, currentPlaylist.get(0).uri, 0, 0);
             }
         });
+
+        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            int RECORD_AUDIO = 666;
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    RECORD_AUDIO);
+        }
+
+        permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            int ACCESS_NETWORK_STATE = 333;
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_NETWORK_STATE},
+                    ACCESS_NETWORK_STATE);
+        }
+//
+//        System.out.print("hi");
+//
+//
+//        final Button startButton = (Button) findViewById(R.id.button);
+//        startButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//
+//                runner.start();
+//            }
+//        });
+//
+//        final Button stop = (Button) findViewById(R.id.stopStreaming);
+//        stop.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//
+//                try {
+//                    Log.d("Main Activity", "Stop");
+//                    runner.join();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -218,7 +294,7 @@ public class MainActivity extends Activity implements
             case kSpPlaybackNotifyPause : {
                 String toSpeak = "How are you feeling?";
                 t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null, null);
-                //INSERT CODE TO GET USER VOICE INPUT - RUCHA
+                startTranscription(); //rucha
                 //SWITCH PLAYLIST BASED ON RESPONSE AND RESUME PLAYER
             }
             default:
@@ -234,6 +310,36 @@ public class MainActivity extends Activity implements
             default:
                 break;
         }
+    }
+
+    private void startTranscription()
+    {
+        runner.start();
+        System.out.println("\n\nhi");
+        try
+        {
+            Log.d("Main Activity", "Stop");
+            runner.join();
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        System.out.println("\n\nhi");
+
+        for (String word : unfilteredMood.split("\\s+"))
+        {
+            for (String moods : MOODS)
+            {
+                if (word.equals(moods))
+                {
+                    currentMood = word;
+                    return;
+                }
+            }
+        }
+
+        System.out.println("\n\n"+currentMood);
     }
 
     @Override
@@ -264,6 +370,7 @@ public class MainActivity extends Activity implements
                 spotify.getTracksAudioFeatures(allTrackURIs, new Callback<AudioFeaturesTracks>() {
                     @Override
                     public void success(AudioFeaturesTracks audioFeaturesTracks, Response response) {
+                        System.out.println("playlists fetched");
                         allTrackFeatures = audioFeaturesTracks;
                         System.out.println("test: " + audioFeaturesTracks.audio_features.get(0).acousticness);
                         System.out.println("test2: " + audioFeaturesTracks.audio_features.get(1).acousticness);
@@ -315,15 +422,44 @@ public class MainActivity extends Activity implements
         }
     }
 
-    public void sortPlaylist(AudioFeaturesTracks featureObj) {
+    public void sortPlaylist(AudioFeaturesTracks featureObj)
+    {
         List<AudioFeaturesTrack> features = featureObj.audio_features;
 
-        for(int i = 0; i < features.size(); i++) {
+        for (int i = 0; i < features.size(); i++)
+        {
             AudioFeaturesTrack curr = features.get(i);
-            if(curr.danceability > .70) { tired.add(curr); }
-            if(curr.energy > .70) { energetic.add(curr); }
-            if(curr.acousticness > .50 && curr.valence < .29) { sad.add(curr); }
-            if(curr.loudness < -6 && (curr.tempo < 125 && curr.tempo > 90)) { chill.add(curr); }
+            if (curr.danceability > .70)
+            {
+                tired.add(curr);
+            }
+            if (curr.energy > .70)
+            {
+                energetic.add(curr);
+            }
+            if (curr.acousticness > .50 && curr.valence < .29)
+            {
+                sad.add(curr);
+            }
+            if (curr.loudness < -6 && (curr.tempo < 125 && curr.tempo > 90))
+            {
+                chill.add(curr);
+            }
         }
+    }
+
+
+    @Override
+    public void onPartial(String text)
+    {
+
+        //setText("Partial: "+text+"\n");
+    }
+
+    @Override
+    public void onFinal(String text)
+    {
+        unfilteredMood = text;
+        //setText("Final: "+text+"\n");
     }
 }
