@@ -23,6 +23,8 @@ import com.spotify.sdk.android.player.Spotify;
 import com.spotify.sdk.android.player.SpotifyPlayer;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -71,6 +73,7 @@ public class MainActivity extends Activity implements
     SpotifyApi api = new SpotifyApi();
     List<PlaylistTrack> saved;
     AudioFeaturesTracks allTrackFeatures;
+    List<List<AudioFeaturesTrack>> allMoods = new ArrayList<List<AudioFeaturesTrack>>();
     List<AudioFeaturesTrack> tired = new ArrayList<>();
     List<AudioFeaturesTrack> energetic = new ArrayList<>();
     List<AudioFeaturesTrack> chill = new ArrayList<>();
@@ -79,6 +82,11 @@ public class MainActivity extends Activity implements
 
     private static final String[] MOODS = new String[] {
             "Happy", "Sad", "Tired", "Energetic", "Chill"};
+
+    private String currentMood = "";
+    List<AudioFeaturesTrack> currentPlaylist;
+    private int currentPos;
+    private int playlistIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,9 +99,14 @@ public class MainActivity extends Activity implements
 
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
 
+        allMoods.add(tired);
+        allMoods.add(energetic);
+        allMoods.add(chill);
+        allMoods.add(sad);
+
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, MOODS);
-        AutoCompleteTextView textView = (AutoCompleteTextView)
+        final AutoCompleteTextView textView = (AutoCompleteTextView)
                 findViewById(R.id.moodEnterView);
         textView.setAdapter(adapter);
         textView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -102,9 +115,16 @@ public class MainActivity extends Activity implements
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 in.hideSoftInputFromWindow(arg1.getApplicationWindowToken(), 0);
+                currentMood = (String) arg0.getItemAtPosition(arg2);
 
+                if(currentMood.equals("Tired")) { currentPos = 0; }
+                else if(currentMood.equals("Energetic")) { currentPos = 1; }
+                else if(currentMood.equals("Chill")) { currentPos = 2; }
+                else { currentPos = 3; }
+
+                currentPlaylist = allMoods.get(currentPos);
+                mPlayer.playUri(null, currentPlaylist.get(0).uri, 0, 0);
             }
-
         });
     }
 
@@ -146,6 +166,27 @@ public class MainActivity extends Activity implements
     @Override
     public void onPlaybackEvent(PlayerEvent playerEvent) {
         Log.d("MainActivity", "Playback event received: " + playerEvent.name());
+        playlistIndex++;
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        if(hour > 17) {
+            currentMood = "Tired";
+            currentPlaylist = tired;
+            playlistIndex = 0;
+        }
+
+        if(playlistIndex == currentPlaylist.size()) {
+            if(currentPos != 3) {
+                currentPos++;
+            } else {
+                currentPos = 0;
+            }
+
+            currentPlaylist = allMoods.get(currentPos);
+            playlistIndex = 0;
+        }
+
+        mPlayer.queue(null, currentPlaylist.get(playlistIndex).uri);
+
         switch (playerEvent) {
             // Handle event type as necessary
             default:
@@ -201,7 +242,6 @@ public class MainActivity extends Activity implements
                         System.out.println("sad: "  + sad.size());
                         System.out.println("chill: " + chill.size());
                         System.out.println("energetic: " + energetic.size());
-                        mPlayer.playUri(null, chill.get(0).uri, 0, 0);
                     }
 
                     @Override
@@ -266,10 +306,13 @@ public class MainActivity extends Activity implements
         Log.d("MainActivity", "Received connection message: " + message);
     }
 
-//    @Override
-//    public void onPause() {
-//        mPlayer.destroy();
-//    }
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(mPlayer != null) {
+            mPlayer.destroy();
+        }
+    }
 
     public void sortPlaylist(AudioFeaturesTracks featureObj) {
         List<AudioFeaturesTrack> features = featureObj.audio_features;
