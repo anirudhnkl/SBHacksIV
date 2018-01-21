@@ -101,7 +101,7 @@ public class MainActivity extends Activity implements
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                in.hideSoftInputFromWindow(arg1.getWindowToken(), 0);
+                in.hideSoftInputFromWindow(arg1.getApplicationWindowToken(), 0);
 
             }
 
