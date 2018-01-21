@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -87,23 +90,41 @@ public class MainActivity extends Activity implements
     List<AudioFeaturesTrack> currentPlaylist;
     private int currentPos;
     private int playlistIndex = 0;
+    //int currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+    int currentTime = Calendar.getInstance().get(Calendar.MINUTE);
+
+    TextToSpeech t1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_picker);
 
+        //Authentication
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
         builder.setScopes(new String[]{"user-read-private", "streaming", "user-library-read"});
         AuthenticationRequest request = builder.build();
-
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
 
+        //Create mood playlists
         allMoods.add(tired);
         allMoods.add(energetic);
         allMoods.add(chill);
         allMoods.add(sad);
 
+        //Create Text to Speech Object
+        t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    t1.setLanguage(Locale.US);
+                    t1.setPitch(1.3f);
+                    t1.setSpeechRate(1.1f);
+                }
+            }
+        });
+
+        //Grab mood from UI
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, MOODS);
         final AutoCompleteTextView textView = (AutoCompleteTextView)
@@ -168,6 +189,12 @@ public class MainActivity extends Activity implements
         Log.d("MainActivity", "Playback event received: " + playerEvent.name());
         playlistIndex++;
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        int min = Calendar.getInstance().get(Calendar.MINUTE);
+        if(min != currentTime) {
+            mPlayer.pause(null);
+            currentTime = min;
+        }
+
         if(hour > 17) {
             currentMood = "Tired";
             currentPlaylist = tired;
@@ -188,7 +215,12 @@ public class MainActivity extends Activity implements
         mPlayer.queue(null, currentPlaylist.get(playlistIndex).uri);
 
         switch (playerEvent) {
-            // Handle event type as necessary
+            case kSpPlaybackNotifyPause : {
+                String toSpeak = "How are you feeling?";
+                t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null, null);
+                //INSERT CODE TO GET USER VOICE INPUT - RUCHA
+                //SWITCH PLAYLIST BASED ON RESPONSE AND RESUME PLAYER
+            }
             default:
                 break;
         }
@@ -238,10 +270,6 @@ public class MainActivity extends Activity implements
                         System.out.println("size: " + audioFeaturesTracks.audio_features.size());
 
                         sortPlaylist(allTrackFeatures);
-                        System.out.println("tired: " + tired.size());
-                        System.out.println("sad: "  + sad.size());
-                        System.out.println("chill: " + chill.size());
-                        System.out.println("energetic: " + energetic.size());
                     }
 
                     @Override
@@ -257,33 +285,6 @@ public class MainActivity extends Activity implements
                 System.out.println(error.getMessage());
             }
         });
-
-
-//
-//        spotify.getTrackAudioFeatures("0bZ52QzCCKfrfOqs7za6lI", new Callback<AudioFeaturesTrack>() {
-//            @Override
-//            public void success(AudioFeaturesTrack audioFeaturesTrack, Response response) {
-//                System.out.println(audioFeaturesTrack.acousticness);
-//            }
-//
-//            @Override
-//            public void failure(RetrofitError error) {
-//                System.out.println("fail");
-//            }
-//        });
-//
-//
-//        spotify.getAlbum("2dIGnmEIy1WZIcZCFSj6i8", new Callback<Album>() {
-//            @Override
-//            public void success(Album album, Response response) {
-//                System.out.println("Album success");
-//            }
-//
-//            @Override
-//            public void failure(RetrofitError error) {
-//                Log.d("Album failure", error.toString());
-//            }
-//        });
     }
 
     @Override
