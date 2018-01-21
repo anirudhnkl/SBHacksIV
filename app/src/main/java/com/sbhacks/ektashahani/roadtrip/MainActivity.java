@@ -18,6 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 
+import android.widget.TextView;
+
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -301,15 +303,16 @@ public class MainActivity extends Activity implements
     {
         runner.start();
         System.out.println("\n\nhi");
-        try
-        {
-            Log.d("Main Activity", "Stop");
-            runner.join();
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                runner.stop();
+            }
+        }, 5000);
+        Log.d("Main Activity", "Stop");
+            //runner.client
         System.out.println("\n\nhi");
 
         for (String word : unfilteredMood.split("\\s+"))
